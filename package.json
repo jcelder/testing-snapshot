@@ -9,7 +9,7 @@
     "db:reset": "dropdb contacts_development && createdb contacts_development && npm run load_schema",
     "load_schema": "psql -d contacts_development < src/models/db/schema/schema.sql",
     "load_contacts": "psql -d contacts_development < test/seed/contacts.sql",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive --exit"
   },
   "keywords": [],
   "author": "",
@@ -21,12 +21,16 @@
     "pg-promise": "^6.2.1"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0",
     "ajv": "^5.2.2",
+    "arrow-mocha": "^1.0.1",
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
     "eslint": "^4.6.1",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-jsx-a11y": "^5.1.1",
-    "eslint-plugin-react": "^7.3.0"
+    "eslint-plugin-react": "^7.3.0",
+    "mocha": "^4.0.1",
+    "nodemon": "^1.11.0"
   }
 }
