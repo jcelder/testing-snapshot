@@ -72,5 +72,53 @@ describe('src/models/db.js Integration Tests', () => {
         })
     })
   })
+
+  describe('destroy(contactId)', () => {
+    const testContactId = 1
+    beforeEach(() => resetDB())
+    it('should return 2 rows as an array', () => {
+      return db.destroy(testContactId)
+        .then(() => db.findAll())
+        .then((results) => {
+          expect(results).to.be.an('array').with.length(2)
+        })
+    })
+    it('should return have an object with id of 2 in the 0 position of the returned array', () => {
+      return db.destroy(testContactId)
+        .then(() => db.findAll())
+        .then((results) => {
+          expect(results[0].id).to.equal(2)
+        })
+    })
+  })
+
+  describe('search(searchQuery)', () => {
+    const testSearchQuery = 'Jared'
+    const testSearchQueryUpperCase = 'Jared'
+    const matchingObject = {
+      id: 1,
+      first_name: 'Jared',
+      last_name: 'Grippe',
+    }
+    beforeEach(() => resetDB())
+    it('should return an array', () => {
+      return db.search(testSearchQuery)
+        .then((results) => {
+          expect(results).to.be.an('array')
+        })
+    })
+    it('should return a matching object in position 0 of the array', () => {
+      return db.search(testSearchQuery)
+        .then((results) => {
+          expect(results[0]).to.deep.equal(matchingObject)
+        })
+    })
+    it('should return a matching object in position 0 of the array regardless of case', () => {
+      return db.search(testSearchQueryUpperCase)
+        .then((results) => {
+          expect(results[0]).to.deep.equal(matchingObject)
+        })
+    })
+  })
 })
 
