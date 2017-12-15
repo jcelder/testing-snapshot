@@ -1,3 +1,7 @@
+/* Nightmarejs UI Tests
+ * Not all tests passing and not even sure if nightmare is capable of handling these tests
+ */
+
 /* eslint-env node, mocha, browser */
 const path = require('path')
 const { expect } = require('chai')
