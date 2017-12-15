@@ -1,14 +1,121 @@
-/* eslint-env node, mocha */
+/* eslint-env node, mocha, browser */
+const path = require('path')
 const { expect } = require('chai')
-const Nightmare = require('nightmarejs')
+const Nightmare = require('nightmare')
 const db = require('../helpers/db')
 
-describe('"/" Index', () => {
-  beforeEach(() => {
+const uri = 'http://localhost:3000'
+/* eslint func-names: ["error", "never"] */
+describe('Headless Tests', function () {
+  this.timeout(15000)
+  let nightmare = null
+  beforeEach((done) => {
     db.resetContacts()
       .then(() => {
-        const nightmare = Nightmare()
+        nightmare = new Nightmare()
+        done()
       })
   })
-  it('should find an element on the dom',)
+  describe('"/" Index', () => {
+    it('should get the title of the home page', (done) => {
+      nightmare.goto(uri)
+        .evaluate(() => document.title)
+        .end()
+        .then((title) => {
+          expect(title).to.equal('Contacts')
+          done()
+        })
+        .catch(done)
+    })
+    it('should render the contacts list', () => {
+      return nightmare
+        .goto(uri)
+        .evaluate(() => {
+          return [...document.querySelectorAll('.contact-link')]
+            .map(el => el.innerHTML)
+        })
+        .end()
+        .then((list) => {
+          expect(list).to.have.length(3)
+        })
+    })
+    it('should create a confirm box when the delete button is clicked', () => {
+      let confirmMessage
+      return nightmare
+        .on('page', (type='confirm', message, response) => {
+          confirmMessage = message
+        })
+        .goto(uri)
+        .click('.delete-contact')
+        .end()
+        .then(() => {
+          expect(confirmMessage).to.equal('Are you sure you want to delete this contact?')
+        })
+    })
+    it('should display a page with the search results', () => {
+      return nightmare
+        .goto(uri)
+        .type('input[name="q"]', 'jared')
+        .click('input[type="submit"]')
+        // .type('input[name="q"]', '\u000d') // press enter
+        .wait('content-link')
+        .evaluate(() => {
+          return document.querySelector('content-link')
+        })
+        .end()
+        .then((searchResults) => {
+          console.log(searchResults)
+          expect(searchResults).to.have.length(1)
+          expect(searchResults).to.include('Jared')
+        })
+    })
+    // ? Need to figure out how to confirm a popup box
+    // it('should delete a contact after the user has confirmed the delete action', () => {
+    //   const confirmMessage = 'Are you sure you want to delete this contact?'
+    //   return nightmare
+    //     .once('page', (type='confirm', message, response) => {
+ 
+    //     })
+    //     .goto(uri)
+    //     .click('.delete-contact')
+    //     .wait('.contact-link')
+    //     .evaluate(() => {
+    //       return [...document.querySelectorAll('.contact-link')]
+    //         .map(el => el.innerHTML)
+    //     })
+    //     .end()
+    //     .then((list) => {
+    //       console.log(list)
+    //       expect(list).to.have.length(2)
+    //     })
+    // })
+  })
+  describe('"/contacts/new" page', () => {
+    it('should display a form to create a new contact', () => {
+      return nightmare
+        .goto(`${uri}/contacts/new`)
+        .evaluate(() => {
+          return document.querySelector('form').className
+        })
+        .end()
+        .then((formClassName) => {
+          expect(formClassName).to.equal('search-form')
+        })
+    })
+    it('should display the new contacts "contacts/:contactid" page when the form is submitted', () => {
+      return nightmare
+        .goto(`${uri}/contacts/new`)
+        .insert('input[name="first_name"]', 'Josh')
+        .insert('input[name="last_name"]', 'Elder')
+        .click('#addContactBtn') // Added ID to submit button
+        .wait(1000)
+        .evaluate(() => {
+          return document.querySelector('h1').innerHTML
+        })
+        .end()
+        .then((name) => {
+          expect(name).to.equal('Josh&nbsp;Elder')
+        })
+    })
+  })
 })
